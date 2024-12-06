@@ -1,0 +1,64 @@
+import os
+from comtypes.client import CreateObject
+
+def convert_doc_to_docx(input_path, output_path=None):
+    """
+    Converte um arquivo .doc para .docx usando o Microsoft Word.
+
+    :param input_path: Caminho completo do arquivo .doc a ser convertido.
+    :param output_path: Caminho para salvar o arquivo .docx convertido (opcional).
+    """
+    if not os.path.exists(input_path):
+        raise FileNotFoundError(f"O arquivo '{input_path}' não foi encontrado.")
+
+    if not input_path.lower().endswith('.doc'):
+        raise ValueError("O arquivo de entrada deve ter a extensão .doc.")
+
+    # Define o caminho de saída
+    if output_path is None:
+        output_path = input_path.replace(".doc", ".docx")
+    elif not output_path.lower().endswith('.docx'):
+        raise ValueError("O arquivo de saída deve ter a extensão .docx.")
+    
+    # Inicia o Microsoft Word
+    word = CreateObject("Word.Application")
+    word.Visible = False
+
+    try:
+        doc = word.Documents.Open(input_path)
+        doc.SaveAs(output_path, FileFormat=16)  # FileFormat=16 é para .docx
+        doc.Close()
+        print(f"Arquivo convertido com sucesso: {output_path}")
+    except Exception as e:
+        print(f"Erro ao converter o arquivo {input_path}: {e}")
+    finally:
+        word.Quit()
+
+def convert_multiple_docs(folder_path):
+    """
+    Converte todos os arquivos .doc em uma pasta para .docx.
+
+    :param folder_path: Caminho da pasta que contém os arquivos .doc.
+    """
+    if not os.path.isdir(folder_path):
+        raise NotADirectoryError(f"O caminho '{folder_path}' não é uma pasta válida.")
+
+    # Lista todos os arquivos na pasta que terminam com .doc
+    doc_files = [f for f in os.listdir(folder_path) if f.lower().endswith('.doc')]
+    
+    if not doc_files:
+        print("Nenhum arquivo .doc encontrado na pasta.")
+        return
+
+    print(f"Convertendo {len(doc_files)} arquivo(s) .doc na pasta '{folder_path}'...")
+    for doc_file in doc_files:
+        input_path = os.path.join(folder_path, doc_file)
+        output_path = input_path.replace(".doc", ".docx")
+        try:
+            convert_doc_to_docx(input_path, output_path)
+        except Exception as e:
+            print(f"Erro ao processar {doc_file}: {e}")
+
+# Exemplo de uso
+folder = r"C:\Users\elom.maio\Desktop\RELATORIOS-PEPs-ARQUIVADOS 2020-2024"  # Substitua pelo caminho da pasta com arquivos .doc
+convert_multiple_docs(folder)
